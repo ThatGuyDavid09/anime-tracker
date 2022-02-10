@@ -1,6 +1,7 @@
 # Use https://github.com/afrase/funimationlater for funimation api
 
 from AnilistPython import Anilist
+import Levenshtein
 from pprint import pprint
 import pyperclip
 import os
@@ -9,7 +10,8 @@ import sqlite3
 from sqlite3 import Error
 
 from backend.apis.crunchyroll import Crunchyroll
-from funimationlater import FunimationLater as Funimation
+from backend.apis.funimation import Funimation
+from hulu import Hulu
 
 
 def create_connection(database):
@@ -70,12 +72,22 @@ title = anime_chosen["title"]["english"] if anime_chosen["title"]["english"] els
 cr = Crunchyroll(os.environ.get("CRUNCHYROLL_EMAIL"), os.environ.get("CRUNCHYROLL_PSWD"))
 fn = Funimation(os.environ.get("CRUNCHYROLL_EMAIL"), os.environ.get("FUNIMATION_PSWD"))
 
-print(cr.search(title)[0].items[0].title)
-print((cr.get_episodes(cr.get_seasons(cr.search(title)[0].items[0].id)[-1].id))[-1].id)
+title_cr = cr.search(title)[0].items[0].title
+if Levenshtein.distance(title, title_cr) <= 10:
+    print("Found CR link.")
+    print(title_cr)
+# print(cr.search(title)[0].items[0].title)
+# print((cr.get_episodes(cr.get_seasons(cr.search(title)[0].items[0].id)[-1].id))[-1].id)
+# print(fn.search(title)["items"]["hits"][0].title)
 
-print("==========")
-print(fn.search(title))
-
+title_fn = fn.search(title)["items"]["hits"][0]["title"]
+# print(title_fn)
+if Levenshtein.distance(title, title_fn) <= 10:
+    print("Found FN link.")
+    print(title_fn)
 # pprint(anilist.extractInfo.anime(anime_id))
+
+hu = Hulu()
+hu.get_shows()
 
 # pyperclip.copy(str(anime_info))

@@ -8,8 +8,8 @@ class Funimation:
     def __init__(self, username, password):
         data = {"username": username, "password": password}
         r = requests.post(LOGIN_ENDPOINT, data=data)
-        print(r.status_code)
-        pprint(r.text)
+        # print(r.status_code)
+        # pprint(r.text)
         self.r = r
         self.token = r.json()["token"]
 
@@ -24,4 +24,4 @@ class Funimation:
             "limit": "3"
         }
         r = requests.get(SEARCH_ENDPOINT, headers=headers, params=params)
-        return r
+        return r.json()
