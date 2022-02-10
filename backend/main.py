@@ -1,11 +1,12 @@
 from AnilistPython import Anilist
 from pprint import pprint
 import pyperclip
+import os
 
 import sqlite3
 from sqlite3 import Error
 
-from wrappers import *
+from backend.apis.crunchyroll import Crunchyroll
 
 
 def create_connection(database):
@@ -27,8 +28,7 @@ def execute_sql(sql):
         conn.commit()
         rows = c.fetchall()
 
-        for r in rows:
-            print(r)
+        return rows
     except Error as e:
         raise e
 
@@ -58,10 +58,14 @@ for i in range(len(anime_info)):
 
 choice = input("Which one of these is correct? ")
 anime_id = anime_info[int(choice) - 1]["id"]
+anime_chosen = anime_info[int(choice) - 1]
 sql = f"""
 INSERT INTO anime(anime_id) VALUES({anime_id});
 """
-execute_sql(sql)
+# execute_sql(sql)
+title = anime_chosen["title"]["english"] if anime_chosen["title"]["english"] else anime_chosen["title"]["romaji"]
+cr = Crunchyroll(os.environ.get("CRUNCHYROLL_EMAIL"), os.environ.get("CRUNCHYROLL_PSWD"))
+print(cr.search(title)[0].items[0].external_id)
 
 # pprint(anilist.extractInfo.anime(anime_id))
 
