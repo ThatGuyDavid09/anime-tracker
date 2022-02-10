@@ -1,3 +1,5 @@
+# Use https://github.com/afrase/funimationlater for funimation api
+
 from AnilistPython import Anilist
 from pprint import pprint
 import pyperclip
@@ -7,6 +9,7 @@ import sqlite3
 from sqlite3 import Error
 
 from backend.apis.crunchyroll import Crunchyroll
+from funimationlater import FunimationLater as Funimation
 
 
 def create_connection(database):
@@ -65,7 +68,13 @@ INSERT INTO anime(anime_id) VALUES({anime_id});
 # execute_sql(sql)
 title = anime_chosen["title"]["english"] if anime_chosen["title"]["english"] else anime_chosen["title"]["romaji"]
 cr = Crunchyroll(os.environ.get("CRUNCHYROLL_EMAIL"), os.environ.get("CRUNCHYROLL_PSWD"))
-print(cr.search(title)[0].items[0].external_id)
+fn = Funimation(os.environ.get("CRUNCHYROLL_EMAIL"), os.environ.get("FUNIMATION_PSWD"))
+
+print(cr.search(title)[0].items[0].title)
+print((cr.get_episodes(cr.get_seasons(cr.search(title)[0].items[0].id)[-1].id))[-1].id)
+
+print("==========")
+print(fn.search(title))
 
 # pprint(anilist.extractInfo.anime(anime_id))
 

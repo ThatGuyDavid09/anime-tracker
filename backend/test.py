@@ -1,39 +1,13 @@
-from AnilistPython import Anilist
+import os
+import pyperclip
 from pprint import pprint
 
-import sqlite3
-from sqlite3 import Error
+from backend.apis.funimation import Funimation
 
-from wrappers import *
-
-
-def create_connection(database):
-    conn = None
-    try:
-        conn = sqlite3.connect(database)
-        return conn
-    except Error as e:
-        print(e)
-
-    raise Exception()
-
-
-def execute_sql(sql):
-    conn = create_connection("./database/anime.db")
-    try:
-        c = conn.cursor()
-        c.execute(sql)
-        conn.commit()
-        rows = c.fetchall()
-
-        for r in rows:
-            print(r)
-    except Error as e:
-        print(e)
-
-if __name__ == "__main__":
-    print("ok")
-    sql = """
-    SELECT * FROM test
-    """
-    execute_sql(sql)
+fn = Funimation(os.environ.get("CRUNCHYROLL_EMAIL"), os.environ.get("FUNIMATION_PSWD"))
+# pyperclip.copy(fn.r.text)
+# print(fn.token)
+r = fn.search("tensei slime")
+print(r.status_code)
+pyperclip.copy(r.text)
+pprint(r.text)
