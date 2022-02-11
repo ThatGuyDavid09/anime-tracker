@@ -114,4 +114,5 @@ class RegisterAnime(APIView):
 
 class GetRegisteredAnime(APIView):
     def get(self, request: Request, format=None):
-        return Response({"status": "success", "anime": [anime.anime_anilist_id for anime in Anime.objects.all()]})
+        anilist = Anilist()
+        return Response({"status": "success", "count": len(Anime.objects.all()), "anime": [anilist.extractInfo.anime(anime.anime_anilist_id)["data"]["Media"] for anime in Anime.objects.all()]})
