@@ -78,7 +78,7 @@ WSGI_APPLICATION = 'django_react.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'backend_test/database/anime.db',
+        'NAME': BASE_DIR / 'backend/database/anime.db',
     }
 }
 
