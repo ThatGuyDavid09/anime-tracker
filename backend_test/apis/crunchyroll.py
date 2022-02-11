@@ -1,3 +1,5 @@
+# Code from https://github.com/stefanodvx/crunchyroll
+
 import requests
 import re
 

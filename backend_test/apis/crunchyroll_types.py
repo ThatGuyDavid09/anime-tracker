@@ -1,3 +1,5 @@
+# Code from https://github.com/stefanodvx/crunchyroll
+
 from typing import Dict, List
 from json import dumps
 

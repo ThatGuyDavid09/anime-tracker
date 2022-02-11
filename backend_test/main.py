@@ -1,7 +1,7 @@
 # Use https://github.com/afrase/funimationlater for funimation api
 
 from AnilistPython import Anilist
-import Levenshtein
+import difflib
 from pprint import pprint
 import pyperclip
 import os
@@ -9,9 +9,8 @@ import os
 import sqlite3
 from sqlite3 import Error
 
-from backend.apis.crunchyroll import Crunchyroll
-from backend.apis.funimation import Funimation
-from hulu import Hulu
+from backend_test.apis.crunchyroll import Crunchyroll
+from backend_test.apis.funimation import Funimation
 
 
 def create_connection(database):
@@ -21,8 +20,6 @@ def create_connection(database):
         return conn
     except Error as e:
         raise e
-
-    raise Exception()
 
 
 def execute_sql(sql):
@@ -50,11 +47,13 @@ def setup_table():
 
 
 anilist = Anilist()
-setup_table()
+# setup_table()
 
 anime_name = input("What anime would you like to see? ")
 anime_info = anilist.extractID.anime(anime_name)["data"]["Page"]["media"]
-# print(anime_info)
+pprint(str(anime_info))
+pyperclip.copy(str(anime_info))
+input()
 for i in range(len(anime_info)):
     anime = anime_info[i]
     # pprint(anime)
@@ -73,7 +72,7 @@ cr = Crunchyroll(os.environ.get("CRUNCHYROLL_EMAIL"), os.environ.get("CRUNCHYROL
 fn = Funimation(os.environ.get("CRUNCHYROLL_EMAIL"), os.environ.get("FUNIMATION_PSWD"))
 
 title_cr = cr.search(title)[0].items[0].title
-if Levenshtein.distance(title, title_cr) <= 10:
+if difflib.SequenceMatcher(None, title, title_cr).ratio() >= .6:
     print("Found CR link.")
     print(title_cr)
 # print(cr.search(title)[0].items[0].title)
@@ -82,12 +81,8 @@ if Levenshtein.distance(title, title_cr) <= 10:
 
 title_fn = fn.search(title)["items"]["hits"][0]["title"]
 # print(title_fn)
-if Levenshtein.distance(title, title_fn) <= 10:
+if difflib.SequenceMatcher(None, title, title_fn).ratio() >= .6:
     print("Found FN link.")
     print(title_fn)
 # pprint(anilist.extractInfo.anime(anime_id))
-
-hu = Hulu()
-hu.get_shows()
-
 # pyperclip.copy(str(anime_info))
