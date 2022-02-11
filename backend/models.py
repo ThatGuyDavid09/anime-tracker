@@ -1,6 +1,6 @@
 from django.db import models
 
 
-# import jsonfield
-
 # Create your models here.
+class Anime(models.Model):
+    anime_anilist_id = models.IntegerField()

@@ -23,7 +23,7 @@ def create_connection(database):
 
 
 def execute_sql(sql):
-    conn = create_connection("./database/anime.db")
+    conn = create_connection("./data/anime.db")
     try:
         c = conn.cursor()
         c.execute(sql)

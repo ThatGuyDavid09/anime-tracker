@@ -1,4 +1,5 @@
 import json
+from json import JSONDecodeError
 
 import pyperclip
 from AnilistPython import Anilist
@@ -9,10 +10,14 @@ from rest_framework.views import APIView
 
 from backend.apis.crunchyroll import Crunchyroll, LoginError
 from backend.apis.funimation import Funimation
+from backend.models import Anime
 
 
 def generate_error_response(message, status_code=400):
     return Response({"status": "error", "message": message}, status=status_code)
+
+
+SERVICES = ["crunchyroll, funimation"]
 
 
 # Create your views here.
@@ -40,58 +45,73 @@ class Info(APIView):
         return Response({"status": "success", "result": anime}, status=200)
 
 
-class CrunchyrollLogin(APIView):
+class Login(APIView):
     def post(self, request: Request, format=None):
         # print(request.body.decode('utf-8'))
         # print(request.POST)
         try:
+            service = request.POST["service"].lower()
             email = request.POST["email"]
             # print(email)
             password = request.POST["password"]
             # print(password)
         except:
-            return generate_error_response("An email and password are required.")
+            return generate_error_response("An email and password, and service are required.")
 
         try:
-            cr = Crunchyroll(email, password)
+            if service == "crunchyroll":
+                _ = Crunchyroll(email, password)
+            elif service == "funimation":
+                _ = Funimation(email, password)
+            else:
+                return generate_error_response("Invalid service. Currently support " + ", ".join(SERVICES))
         except LoginError as e:
             return generate_error_response("Login credentials invalid", 401)
         # print(request.POST["test"])
 
-        with open("backend/database/logins.json", "r+", encoding='utf-8') as json_file:
+        with open("backend/data/logins.json", "r+", encoding='utf-8') as json_file:
             str_content = json_file.read()
-            data = json.loads(str_content)
-            data["CRUNCHYROLL_EMAIL"] = email
-            data["CRUNCHYROLL_PSWD"] = password
+            try:
+                data = json.loads(str_content)
+            except JSONDecodeError:
+                data = {}
+            data[service.upper() + "_EMAIL"] = email
+            data[service.upper() + "_PSWD"] = password
             json_file.seek(0)
             json.dump(data, json_file)
 
         return Response({"status": "success"}, status=200)
 
-class FunimationLogin(APIView):
+
+class GetAuthenticatedServices(APIView):
+    def get(self, request: Request, format=None):
+        data = {"status": "success", "services": []}
+        with open("backend/data/logins.json", "r+", encoding='utf-8') as json_file:
+            str_content = json_file.read()
+            try:
+                data = json.loads(str_content)
+            except JSONDecodeError:
+                return Response(data)
+            for service in SERVICES:
+                try:
+                    _ = data[service.upper() + "_PSWD"]
+                    data["services"].append(service)
+                except KeyError:
+                    continue
+
+
+class RegisterAnime(APIView):
     def post(self, request: Request, format=None):
-        # print(request.body.decode('utf-8'))
-        # print(request.POST)
         try:
-            email = request.POST["email"]
-            # print(email)
-            password = request.POST["password"]
+            anime_id = request.POST["anime_id"].lower()
             # print(password)
         except:
-            return generate_error_response("An email and password are required.")
+            return generate_error_response("An anime_id is required.")
 
-        try:
-            fn = Funimation(email, password)
-        except LoginError as e:
-            return generate_error_response("Login credentials invalid", 401)
-        # print(request.POST["test"])
+        anime = Anime(anilist_id=anime_id)
+        anime.save()
 
-        with open("backend/database/logins.json", "r+", encoding='utf-8') as json_file:
-            str_content = json_file.read()
-            data = json.loads(str_content)
-            data["FUNIMATION_EMAIL"] = email
-            data["FUNIMATION_PSWD"] = password
-            json_file.seek(0)
-            json.dump(data, json_file)
 
-        return Response({"status": "success"}, status=200)
+class GetRegisteredAnime(APIView):
+    def get(self, request: Request, format=None):
+        return Response({"status": "success", "anime": [anime.anime_anilist_id for anime in Anime.objects.all()]})
